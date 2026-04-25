@@ -4,6 +4,15 @@
   "parameters": {
     "rgName": { "value": "rg-meal-agent-dev" },
     "storagePrefix": "mealdev",
-    "envTags": { "value": { "Environment": "Dev", "Owner": "Lakshmanan" } }
+    "envTags": { "value": { "Environment": "Dev", "Owner": "Lakshmanan" }}, 
+    "location": {
+      "value": "eastus"
+    },
+    "subscriptionId": {
+      "value": "c4427b93-d309-4967-b0be-819cb0de4ebe"
+    },
+    "serviceConnection": {
+      "value": "your-dev-service-connection"
+    }
   }
 }

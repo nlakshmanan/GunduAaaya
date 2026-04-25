@@ -1,16 +1,21 @@
 trigger:
 - main
 
-variables:
-  serviceConnection: 'Your-Service-Connection'
-  subId: 'your-guid-here'
-
 stages:
 - stage: DeployDev
   displayName: 'Deploy to Development'
   jobs:
   - job: Provision
     steps:
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          $params = Get-Content 'params/dev.json' | ConvertFrom-Json
+          $subId = $params.parameters.subscriptionId.value
+          $serviceConn = $params.parameters.serviceConnection.value
+          Write-Host "##vso[task.setvariable variable=subId]$subId"
+          Write-Host "##vso[task.setvariable variable=serviceConnection]$serviceConn"
     - task: AzureResourceManagerTemplateDeployment@3
       inputs:
         deploymentScope: 'Subscription'
@@ -18,13 +23,13 @@ stages:
         subscriptionId: '$(subId)'
         location: 'eastus'
         csmFile: 'main.bicep'
-        csmParametersFile: 'params/dev.json' # Points to Dev params
+        csmParametersFile: 'params/dev.json'
         deploymentMode: 'Incremental'
 
 - stage: DeployProd
   displayName: 'Deploy to Production'
   dependsOn: DeployDev
-  condition: false # succeeded() # Only runs if Dev succeeds
+  condition: succeeded() # Only runs if Dev succeeds
   jobs:
   - deployment: ProvisionProd
     environment: 'Production' # Links to Azure DevOps Environment with Approval Gates
@@ -32,6 +37,15 @@ stages:
       runOnce:
         deploy:
           steps:
+          - task: PowerShell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+                $params = Get-Content 'params/prod.json' | ConvertFrom-Json
+                $subId = $params.parameters.subscriptionId.value
+                $serviceConn = $params.parameters.serviceConnection.value
+                Write-Host "##vso[task.setvariable variable=subId]$subId"
+                Write-Host "##vso[task.setvariable variable=serviceConnection]$serviceConn"
           - task: AzureResourceManagerTemplateDeployment@3
             inputs:
               deploymentScope: 'Subscription'
@@ -39,5 +53,5 @@ stages:
               subscriptionId: '$(subId)'
               location: 'eastus'
               csmFile: 'main.bicep'
-              csmParametersFile: 'params/prod.json' # Points to Prod params
+              csmParametersFile: 'params/prod.json'
               deploymentMode: 'Incremental'

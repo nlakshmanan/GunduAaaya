@@ -4,6 +4,12 @@
   "parameters": {
     "rgName": { "value": "rg-meal-agent-prod" },
     "storagePrefix": "mealprod",
-    "envTags": { "value": { "Environment": "Prod", "Owner": "Lakshmanan" } }
+    "envTags": { "value": { "Environment": "Prod", "Owner": "Lakshmanan" } },
+    "subscriptionId": {
+      "value": "your-subscription-id-here"
+    },
+    "serviceConnection": {
+      "value": "your-dev-service-connection"
+    }
   }
 }
