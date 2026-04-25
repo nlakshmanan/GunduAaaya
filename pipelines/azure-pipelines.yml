@@ -1,0 +1,43 @@
+trigger:
+- main
+
+variables:
+  serviceConnection: 'Your-Service-Connection'
+  subId: 'your-guid-here'
+
+stages:
+- stage: DeployDev
+  displayName: 'Deploy to Development'
+  jobs:
+  - job: Provision
+    steps:
+    - task: AzureResourceManagerTemplateDeployment@3
+      inputs:
+        deploymentScope: 'Subscription'
+        azureResourceManagerConnection: '$(serviceConnection)'
+        subscriptionId: '$(subId)'
+        location: 'eastus'
+        csmFile: 'main.bicep'
+        csmParametersFile: 'params/dev.json' # Points to Dev params
+        deploymentMode: 'Incremental'
+
+- stage: DeployProd
+  displayName: 'Deploy to Production'
+  dependsOn: DeployDev
+  condition: false # succeeded() # Only runs if Dev succeeds
+  jobs:
+  - deployment: ProvisionProd
+    environment: 'Production' # Links to Azure DevOps Environment with Approval Gates
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureResourceManagerTemplateDeployment@3
+            inputs:
+              deploymentScope: 'Subscription'
+              azureResourceManagerConnection: '$(serviceConnection)'
+              subscriptionId: '$(subId)'
+              location: 'eastus'
+              csmFile: 'main.bicep'
+              csmParametersFile: 'params/prod.json' # Points to Prod params
+              deploymentMode: 'Incremental'
